@@ -198,14 +198,30 @@ function DiagnosticApp({ config, onBack, onSelect }) {
     return { earned, max, pct: Math.round((earned/max)*100) };
   };
 
-  // 弱点TOP3：スコアの低い問いを特定
-  const weakPoints = questions
+  // 全問のスコアを集計
+  const allPoints = questions
     .map(q => ({ q, score: answers[q.id]??0, max: Math.max(...q.options.map(o=>o.score)) }))
+    .filter(item => item.max > 0);
+
+  // 弱点TOP3（表示用）
+  const weakPoints = allPoints
     .filter(item => item.score < item.max)
     .sort((a,b) => (a.score/a.max) - (b.score/b.max))
     .slice(0,3);
 
-  const riskType = getRiskType(weakPoints);
+  // リスクタイプ判定（全問・カテゴリ別平均で判定）
+  const catRatios = {};
+  allPoints.forEach(item => {
+    const cat = item.q.category;
+    if (!catRatios[cat]) catRatios[cat] = { total:0, max:0 };
+    catRatios[cat].total += item.score;
+    catRatios[cat].max += item.max;
+  });
+  const worstCat = Object.entries(catRatios)
+    .map(([cat, v]) => ({ cat, ratio: v.max > 0 ? v.total / v.max : 0 }))
+    .sort((a,b) => a.ratio - b.ratio)[0]?.cat || "";
+
+  const riskType = getRiskType([{ q:{ category: worstCat } }]);
 
   // カテゴリコメント取得
   const getCatComment = (cat, pct) => {
@@ -225,13 +241,15 @@ function DiagnosticApp({ config, onBack, onSelect }) {
         <div style={{ width:"100%", maxWidth:540, background:risk.bg, border:`2.5px solid ${risk.border}`, boxShadow:`4px 6px 0px ${risk.border}`, borderRadius:24, padding:"28px 24px", textAlign:"center", marginBottom:20 }}>
           <div style={{ fontSize:48, marginBottom:8 }}>{risk.emoji}</div>
 
-          {/* リスクタイプ */}
-          <div style={{ marginBottom:8 }}>
-            <div style={{ fontSize:13, color:"#6b7280", fontFamily:"'M PLUS Rounded 1c',sans-serif", marginBottom:4 }}>あなたのタイプ</div>
-            <div style={{ fontSize:36, fontWeight:900, fontFamily:"'Yomogi',cursive", lineHeight:1.1, color:risk.color }}>
-              {riskType.emoji} {riskType.name}
+          {/* リスクタイプ（総合診断のみ表示） */}
+          {config.showRiskType && (
+            <div style={{ marginBottom:8 }}>
+              <div style={{ fontSize:13, color:"#6b7280", fontFamily:"'M PLUS Rounded 1c',sans-serif", marginBottom:4 }}>あなたのリスクタイプ</div>
+              <div style={{ fontSize:36, fontWeight:900, fontFamily:"'Yomogi',cursive", lineHeight:1.1, color:risk.color }}>
+                {riskType.emoji} {riskType.name}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 診断ランク */}
           <div style={{ marginBottom:8 }}>
@@ -345,13 +363,28 @@ function calcSumaiAge(score, totalMax) {
 // ============================================================
 function getRiskType(weakPoints) {
   if (!weakPoints || weakPoints.length === 0) return { emoji:"🌱", name:"安心維持型" };
-  const top = weakPoints[0]?.q?.category || "";
-  if (top.includes("浸水") || top.includes("洪水") || top.includes("土砂") || top.includes("防水")) return { emoji:"🌊", name:"災害脆弱型" };
-  if (top.includes("建築") || top.includes("屋根") || top.includes("外観") || top.includes("構造")) return { emoji:"🏚️", name:"老朽化リスク型" };
-  if (top.includes("家計") || top.includes("ローン") || top.includes("資金") || top.includes("保険")) return { emoji:"💰", name:"維持費圧迫型" };
-  if (top.includes("人口") || top.includes("コミュニティ") || top.includes("将来")) return { emoji:"📉", name:"人口減少リスク型" };
-  if (top.includes("孤立") || top.includes("近所") || top.includes("つながり")) return { emoji:"🤝", name:"孤立リスク型" };
-  return { emoji:"🛣️", name:"インフラ依存型" };
+
+  // カテゴリ別の最低スコアを集計
+  const catScores = {};
+  weakPoints.forEach(item => {
+    const cat = item.q.category;
+    const ratio = item.max > 0 ? item.score / item.max : 0;
+    if (!(cat in catScores) || ratio < catScores[cat]) {
+      catScores[cat] = ratio;
+    }
+  });
+
+  // 最もスコアが低いカテゴリを特定
+  const worst = Object.entries(catScores).sort((a,b) => a[1] - b[1])[0]?.[0] || "";
+
+  if (worst.includes("水害") || worst.includes("浸水") || worst.includes("洪水") || worst.includes("土砂") || worst.includes("防水")) return { emoji:"🌊", name:"災害脆弱型" };
+  if (worst.includes("耐震") || worst.includes("構造") || worst.includes("建築") || worst.includes("屋根") || worst.includes("外観")) return { emoji:"🏚️", name:"老朽化リスク型" };
+  if (worst.includes("家計") || worst.includes("住居費") || worst.includes("ローン") || worst.includes("資金") || worst.includes("保険")) return { emoji:"💰", name:"維持費圧迫型" };
+  if (worst.includes("売却") || worst.includes("資産")) return { emoji:"📊", name:"資産価値低下型" };
+  if (worst.includes("街") || worst.includes("インフラ") || worst.includes("行政") || worst.includes("将来") || worst.includes("設備")) return { emoji:"🛣️", name:"インフラ依存型" };
+  if (worst.includes("孤立") || worst.includes("近所") || worst.includes("コミュニティ") || worst.includes("つながり")) return { emoji:"🤝", name:"孤立リスク型" };
+  if (worst.includes("人口") || worst.includes("空き家") || worst.includes("地盤") || worst.includes("基礎")) return { emoji:"📉", name:"地域衰退リスク型" };
+  return { emoji:"⚠️", name:"複合リスク型" };
 }
 
 // ============================================================
@@ -377,7 +410,7 @@ const CONFIGS = {
   // 総合診断（各診断から3問ずつ抜粋・計24問）
   // ============================================================
   sogou: {
-    titleEmoji:"🏆", title:"住まう力\n総合診断", subtitle:"24の質問で住まいの\n総合的なリスクがわかります",
+    titleEmoji:"🏆", title:"住まう力\n総合診断（24問版）", subtitle:"24の質問で住まいの\n総合的なリスクがわかります",
     accent:"#7c3aed", accentDark:"#5b21b6", accentBg:"#f5f3ff", accentBorder:"#c4b5fd",
     grad:"linear-gradient(135deg,#7c3aed,#db2777)", wrapBg:"linear-gradient(160deg,#f5f3ff 0%,#fdf2f8 100%)",
     categoryList:[
@@ -400,6 +433,7 @@ const CONFIGS = {
       {id:"kiso",   emoji:"🪨",label:"基礎・地盤リスク詳細診断"},
       {id:"kakei",  emoji:"💴",label:"家計・住居費の持続力詳細診断"},
     ],
+    showRiskType:true,
     getRisk:(s,m)=>defaultRisk(s,m,["住まう力：高い","住まう力：普通","住まう力：要改善","住まう力：危険"]),
     questions:[
       // ── 耐震・構造（代表3問）
@@ -936,8 +970,8 @@ function Portal({ onSelect }) {
               <div style={{ fontSize:15, fontWeight:800, color:"#1f2937", marginBottom:3 }}>{app.title}</div>
               <div style={{ fontSize:12, color:"#9ca3af", lineHeight:1.6, whiteSpace:"pre-line" }}>{app.desc}</div>
               <div style={{ display:"flex", gap:8, marginTop:6 }}>
-                <span style={{ fontSize:11, color:app.color, fontWeight:700, background:app.bg, borderRadius:20, padding:"2px 8px" }}>15問</span>
-                <span style={{ fontSize:11, color:app.color, fontWeight:700, background:app.bg, borderRadius:20, padding:"2px 8px" }}>約5分</span>
+                <span style={{ fontSize:11, color:app.color, fontWeight:700, background:app.bg, borderRadius:20, padding:"2px 8px" }}>{app.id==="sogou"?"24問":"15問"}</span>
+                <span style={{ fontSize:11, color:app.color, fontWeight:700, background:app.bg, borderRadius:20, padding:"2px 8px" }}>{app.id==="sogou"?"約10分":"約5分"}</span>
               </div>
             </div>
             <div style={{ fontSize:20, color:app.color, flexShrink:0, fontWeight:800 }}>›</div>
