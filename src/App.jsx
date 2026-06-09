@@ -52,7 +52,7 @@ function LineBanner({ score, totalMax }) {
             fontFamily:"'M PLUS Rounded 1c',sans-serif" }}>あなた専用</div>
           <div style={{ fontSize:17, fontWeight:800, color:"#fff",
             fontFamily:"'M PLUS Rounded 1c',sans-serif", lineHeight:1.3 }}>
-            2046年の未来診断書を無料で受け取る
+            2046年からの未来診断書を無料で受け取る
           </div>
         </div>
       </div>
