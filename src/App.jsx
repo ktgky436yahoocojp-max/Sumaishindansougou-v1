@@ -91,9 +91,31 @@ function DaikoCTA() {
       <div style={{ textAlign:"center", marginBottom:16 }}>
         <div style={{ fontSize:36, marginBottom:8 }}>🔎</div>
         <h3 style={{ fontFamily:"'Yomogi',cursive", fontSize:19, color:"#fff", marginBottom:8 }}>自分で調べるのが面倒なら…</h3>
-        <p style={{ fontSize:13, color:"#d1d5db", lineHeight:1.7 }}>書類確認・現地確認・詳細レポートまで<br/><b style={{ color:"#fbbf24" }}>マンション管理士が代わりに診断</b>します。</p>
+       <p style={{
+  fontSize:13,
+  color:"#d1d5db",
+  lineHeight:1.9
+}}>
+  書類確認・現地確認・詳細レポートまで
+  <br/>
+  <b style={{ color:"#fbbf24" }}>
+    マンション管理士が代わりに診断します。
+  </b>
+
+  <br/><br/>
+
+  この診断では分からない
+
+  <br/>✅ 20年後のリスク
+  <br/>✅ 今やるべき優先対策
+  <br/>✅ 住み続けるか、住み替えるかの判断
+
+  <br/><br/>
+
+  を詳しく分析します。
+</p> 
       </div>
-      <a href={LINE_URL_DAIKO} target="_blank" rel="noopener noreferrer" style={{ display:"block", width:"100%", padding:"15px", background:"linear-gradient(135deg,#f59e0b,#ef4444)", color:"#fff", borderRadius:14, border:"none", fontSize:16, fontWeight:800, fontFamily:"'M PLUS Rounded 1c',sans-serif", boxShadow:"0 3px 0 #92400e", cursor:"pointer", textDecoration:"none", textAlign:"center" }}>📩 プロ代行診断に申し込む</a>
+      <a href={LINE_URL_DAIKO} target="_blank" rel="noopener noreferrer" style={{ display:"block", width:"100%", padding:"15px", background:"linear-gradient(135deg,#f59e0b,#ef4444)", color:"#fff", borderRadius:14, border:"none", fontSize:16, fontWeight:800, fontFamily:"'M PLUS Rounded 1c',sans-serif", boxShadow:"0 3px 0 #92400e", cursor:"pointer", textDecoration:"none", textAlign:"center" }}>📩 プロ代行診断の内容を見てみる</a>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginTop:12, background:"#f3f4f6", borderRadius:10, padding:"9px 14px" }}>
         <span style={{ fontSize:16 }}>💬</span>
         <span style={{ fontSize:13, color:"#374151", fontWeight:700, fontFamily:"'M PLUS Rounded 1c',sans-serif" }}>追加後に <span style={{ background:"#fef9c3", padding:"1px 6px", borderRadius:4 }}>「代行」</span> と送ってください</span>
