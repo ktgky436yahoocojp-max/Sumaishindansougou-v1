@@ -281,9 +281,9 @@ function DiagnosticApp({ config, onBack, onSelect }) {
             </div>
           </div>
 
-          {/* 住まい年齢 */}
+          {/* 住まう年齢 */}
           <div style={{ background:"rgba(255,255,255,0.7)", borderRadius:16, padding:"10px 20px", marginBottom:10, display:"inline-block" }}>
-            <div style={{ fontSize:11, color:"#6b7280", fontFamily:"'M PLUS Rounded 1c',sans-serif", marginBottom:2 }}>🏠 住まい年齢</div>
+            <div style={{ fontSize:11, color:"#6b7280", fontFamily:"'M PLUS Rounded 1c',sans-serif", marginBottom:2 }}>🏠 住まう年齢</div>
             <div style={{ fontSize:36, fontWeight:800, color:risk.color, fontFamily:"'Yomogi',cursive", lineHeight:1 }}>
               {calcSumaiAge(totalScore, TOTAL_MAX)}<span style={{ fontSize:18 }}>歳</span>
             </div>
